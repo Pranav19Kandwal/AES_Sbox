@@ -329,5 +329,38 @@ print(aes_sbox)
 
 # Enjoy the Assignment #
 
+def equations():
+    print("\n")
+    for i in range(8):
+      eqn_str = "b{} = ".format(7-i)
+      for j in range(8):
+        if A_inv[i][j] == 1:
+          eqn_str += "g{} + ".format(7-j)
+      eqn_str = eqn_str[:-2]
+      print(eqn_str)
+
+equations()
+
+aes_inv = []
+
+def computeInverse(g_list):
+    b_list = [0, 0, 0, 0, 0, 0, 0, 0]
+    for i in range(8):
+      for j in range(8):
+        if A_inv[i][j] != 0:
+          b_list[i] ^= g_list[j]
+    return b_list
+     
+def computeAES_Inv():
+  for i in range(1, 256):
+    element = F.from_integer(i)
+    elementList = [int(x) for x in bin(element.to_integer())[2:].zfill(8)]
+    element_inv = computeInverse(elementList)
+    element_inv_toInteger = 0
+    for i in range(8):
+      element_inv_toInteger += (element_inv[i] * (2 ** (7-i))) 
+    aes_inv.append(element_inv_toInteger)
+
+computeAES_Inv()
 
 
