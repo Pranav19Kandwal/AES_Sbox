@@ -236,12 +236,6 @@ print(A_inv)
 # bits b = (b7, b6, b5, b4, b3, b2, b1, b0) in where b in in GF(2^2^2^2)
 
 # Write your code here ------------------------
-
-def equations(g_list):
-    g = vector(F, g_list) 
-    b = A_inv * g
-    return b
-
 # ---------------------------------------------
 
 # Step 2.12----------------------------
@@ -251,18 +245,14 @@ def equations(g_list):
 # Your code here -----------------------------------
 # Write all the necessary funtions etc in this space. 
 
-def computeInverse(b_list):
-    b = sum([b_list[i] * F.gen()^(7-i) for i in range(8)])
-    return b.inverse()
-
 aes_inv = []
-
-for i in range(1, 256):
-  element = F.from_integer(i)
-  elementList = [int(x) for x in bin(element.to_integer())[2:].zfill(8)]
-  element_inv = computeInverse(elementList)
-  aes_inv.append(element_inv.to_integer())
-
+def computeInverse():
+  for i in range(1, 256):
+    g = F.from_integer(i)
+    g_inv = g.inverse()
+    aes_inv.append(g_inv.to_integer())
+    
+computeInverse()
 #----------------------------------------------------
 
 #**** Milestone 2: Here you should be able to compute inversion of each field element (except 0 of course) ******#
@@ -328,39 +318,3 @@ print(aes_sbox)
 
 
 # Enjoy the Assignment #
-
-def equations():
-    print("\n")
-    for i in range(8):
-      eqn_str = "b{} = ".format(7-i)
-      for j in range(8):
-        if A_inv[i][j] == 1:
-          eqn_str += "g{} + ".format(7-j)
-      eqn_str = eqn_str[:-2]
-      print(eqn_str)
-
-equations()
-
-aes_inv = []
-
-def computeInverse(g_list):
-    b_list = [0, 0, 0, 0, 0, 0, 0, 0]
-    for i in range(8):
-      for j in range(8):
-        if A_inv[i][j] != 0:
-          b_list[i] ^= g_list[j]
-    return b_list
-     
-def computeAES_Inv():
-  for i in range(1, 256):
-    element = F.from_integer(i)
-    elementList = [int(x) for x in bin(element.to_integer())[2:].zfill(8)]
-    element_inv = computeInverse(elementList)
-    element_inv_toInteger = 0
-    for i in range(8):
-      element_inv_toInteger += (element_inv[i] * (2 ** (7-i))) 
-    aes_inv.append(element_inv_toInteger)
-
-computeAES_Inv()
-
-
