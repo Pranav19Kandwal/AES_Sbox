@@ -68,12 +68,23 @@ module squaring(gamma, gamma_sq);
   input [3:0] gamma;
   output [3:0] gamma_sq;
   wire [3:0] tau;
-  GF_24_to_GF_222 GF_24_to_GF_222_inst1 (.g2(gamma), .g3(tau));
   wire [3:0] tau_sq;
-  assign tau_sq[3] = tau[3];
-  assign tau_sq[2] = tau[2];
-  assign tau_sq[1] = tau[3] ^ tau[2] ^ tau[1];
-  assign tau_sq[0] = tau[3] ^ tau[0];
+  GF_24_to_GF_222 GF_24_to_GF_222_inst1 (.g2(gamma), .g3(tau));
+  wire [1:0] t1 = {tau[3], tau[2]};
+  wire [1:0] t0 = {tau[1], tau[0]};
+  wire [1:0] N;
+  wire [1:0] t1_sq;
+  wire [1:0] t0_sq;
+  wire [1:0] prod_t1sq_N;
+  assign N = 2'b10;
+  GF22_squaring GF22_squaring_inst1 (.t(t1), ,t_sq(t1_sq));
+  GF22_squaring GF22_squaring_inst2 (.t(t2), ,t_sq(t2_sq));
+  GF22_multiplication GF22_multiplication_inst0 (.t1(t1_sq), .t2(N), .t3(prod_t1sq_N));
+
+  assign tau_sq[3] = t1_sq[1];
+  assign tau_sq[2] = t1_sq[0];
+  assign tau_sq[1] = t0_sq[1] ^ prod_t1sq_N[1];
+  assign tau_sq[0] = t0_sq[0] ^ prod_t1sq_N[0];
   GF_222_to_GF_24 GF_222_to_GF_24_inst1 (.g3(tau_sq), .g2(gamma_sq));
 endmodule
 
@@ -99,8 +110,7 @@ module multiplication(gamma1, gamma2, gamma3);
   wire [1:0] res_t3_t1_N;
   wire [1:0] N;
 
-  assign N[0] = 1;
-  assign N[1] = 0;
+  assign N = 2'b10;
   assign t3 = tau1[3:2];
   assign t2 = tau1[1:0];
   assign t1 = tau2[3:2];
@@ -143,8 +153,8 @@ module multiplicative_inverse(gamma, gamma_inv);
   assign t0 = {tau[1], tau[0]};
   assign sum_t1_t0 = t1 ^ t0;
   assign N = 2'b10;
-  GF22_squaring GF22_squaring_inst1 (.t(t0), .t_sq(t0_sq));
-  GF22_squaring GF22_squaring_inst2 (.t(t1), .t_sq(t1_sq));
+  GF22_squaring GF22_squaring_inst3 (.t(t0), .t_sq(t0_sq));
+  GF22_squaring GF22_squaring_inst4 (.t(t1), .t_sq(t1_sq));
   GF22_multiplication GF22_multiplication_inst6 (.t1(t1), .t2(t0), .t3(prod_t1_t0));
   GF22_multiplication GF22_multiplication_inst7 (.t1(t1_sq), .t2(N), .t3(prod_t1sq_N));
   assign delta01 = t0_sq ^ prod_t1_t0 ^ prod_t1sq_N;
@@ -199,7 +209,6 @@ module affineTransformation(state_in, state_out);
   input [7:0] state_in;
   output reg [7:0] state_out;
   
-  // Define the matrix A and constant b.
   reg [7:0] A [7:0];
   initial begin
     A[0] = 8'b11111000;
