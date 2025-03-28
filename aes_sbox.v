@@ -142,7 +142,7 @@ module multiplicative_inverse(gamma, gamma_inv);
   assign t1 = {tau[3], tau[2]};
   assign t0 = {tau[1], tau[0]};
   assign sum_t1_t0 = t1 ^ t0;
-  assign N = {1, 0};
+  assign N = 2'b10;
   GF22_squaring GF22_squaring_inst1 (.t(t0), .t_sq(t0_sq));
   GF22_squaring GF22_squaring_inst2 (.t(t1), .t_sq(t1_sq));
   GF22_multiplication GF22_multiplication_inst6 (.t1(t1), .t2(t0), .t3(prod_t1_t0));
@@ -179,7 +179,7 @@ module AES_inverse(g1, g1_inv);
   wire [3:0] prod_gamma1_gamma2;
   wire [3:0] prod_gamma2Sq_mu;
   
-  assign mu = {1, 1, 1, 0};
+  assign mu = 4'b1110;
   squaring squaring_inst1 (.gamma(gamma1), .gamma_sq(gamma1_sq));
   squaring squaring_inst2 (.gamma(gamma2), .gamma_sq(gamma2_sq));
   multiplication multiplication_inst1 (.gamma1(gamma1), .gamma2(gamma2), .gamma3(prod_gamma1_gamma2));
