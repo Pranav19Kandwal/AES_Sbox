@@ -236,6 +236,14 @@ print(A_inv)
 # bits b = (b7, b6, b5, b4, b3, b2, b1, b0) in where b in in GF(2^2^2^2)
 
 # Write your code here ------------------------
+print("\n********** Equations for b in terms of g **********")
+for i in range(8):
+    eq_terms = []
+    for j in range(8):
+        if A_inv[i,j] == 1:
+            eq_terms.append("g%d" % (7 - j))
+    eq_str = " + ".join(eq_terms) if eq_terms else "0"
+    print("b%d = %s" % (7 - i, eq_str))
 # ---------------------------------------------
 
 # Step 2.12----------------------------
