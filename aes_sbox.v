@@ -65,28 +65,36 @@ module GF22_squaring(t, t_sq);
 endmodule
 
 module squaring(gamma, gamma_sq);
-  input [3:0] gamma;
+  input  [3:0] gamma;
   output [3:0] gamma_sq;
+
   wire [3:0] tau;
   wire [3:0] tau_sq;
-  GF_24_to_GF_222 GF_24_to_GF_222_inst1 (.g2(gamma), .g3(tau));
-  wire [1:0] t1 = {tau[3], tau[2]};
-  wire [1:0] t0 = {tau[1], tau[0]};
-  wire [1:0] N;
+
+  GF_24_to_GF_222 u_iso (.g2(gamma), .g3(tau));
+
+  wire [1:0] t1;
+  wire [1:0] t0;
+  assign t1 = {tau[3], tau[2]};
+  assign t0 = {tau[1], tau[0]};
+
   wire [1:0] t1_sq;
   wire [1:0] t0_sq;
   wire [1:0] prod_t1sq_N;
-  assign N = 2'b10;
-  GF22_squaring GF22_squaring_inst1 (.t(t1), ,t_sq(t1_sq));
-  GF22_squaring GF22_squaring_inst2 (.t(t2), ,t_sq(t2_sq));
-  GF22_multiplication GF22_multiplication_inst0 (.t1(t1_sq), .t2(N), .t3(prod_t1sq_N));
+  wire [1:0] N = 2'b10;
+
+  GF22_squaring u_sq1 (.t(t1), .t_sq(t1_sq));
+  GF22_squaring u_sq0 (.t(t0), .t_sq(t0_sq));
+  GF22_multiplication u_mul (.t1(t1_sq), .t2(N), .t3(prod_t1sq_N));
 
   assign tau_sq[3] = t1_sq[1];
   assign tau_sq[2] = t1_sq[0];
   assign tau_sq[1] = t0_sq[1] ^ prod_t1sq_N[1];
   assign tau_sq[0] = t0_sq[0] ^ prod_t1sq_N[0];
-  GF_222_to_GF_24 GF_222_to_GF_24_inst1 (.g3(tau_sq), .g2(gamma_sq));
+
+  GF_222_to_GF_24 u_back (.g3(tau_sq), .g2(gamma_sq));
 endmodule
+
 
 module multiplication(gamma1, gamma2, gamma3);
   input [3:0] gamma1;
@@ -205,49 +213,21 @@ module AES_inverse(g1, g1_inv);
   GF_242_to_GF_28 GF_242_to_GF_28_inst1 (.g2(g2_inv), .g1(g1_inv)); 
 endmodule
 
-module affineTransformation(state_in, state_out);
-  input [7:0] state_in;
-  output reg [7:0] state_out;
-  
-  reg [7:0] A [7:0];
-  initial begin
-    A[0] = 8'b11111000;
-    A[1] = 8'b01111100;
-    A[2] = 8'b00111110;
-    A[3] = 8'b00011111;
-    A[4] = 8'b10001111;
-    A[5] = 8'b11000111;
-    A[6] = 8'b11100011;
-    A[7] = 8'b11110001;
-  end
-  localparam [7:0] b = 8'b01100011;
-  
-  integer i, j;
-  reg temp;
-  
-  always @(*) begin
-    for (i = 0; i < 8; i = i + 1) begin
-      temp = 1'b0;
-      for (j = 0; j < 8; j = j + 1) begin
-        temp = temp ^ (A[i][j] & state_in[j]);
-      end
-      state_out[i] = temp ^ b[i];
-    end
-  end
+module affineTransformation(input  [7:0] state_in, output [7:0] state_out);
+  wire [7:0] b = 8'h63;
+  assign state_out[7] = state_in[7] ^ state_in[6] ^ state_in[5] ^ state_in[4] ^ state_in[3] ^ b[7];
+  assign state_out[6] = state_in[6] ^ state_in[5] ^ state_in[4] ^ state_in[3] ^ state_in[2] ^ b[6];
+  assign state_out[5] = state_in[5] ^ state_in[4] ^ state_in[3] ^ state_in[2] ^ state_in[1] ^ b[5];
+  assign state_out[4] = state_in[4] ^ state_in[3] ^ state_in[2] ^ state_in[1] ^ state_in[0] ^ b[4];
+  assign state_out[3] = state_in[7] ^ state_in[3] ^ state_in[2] ^ state_in[1] ^ state_in[0] ^ b[3];
+  assign state_out[2] = state_in[7] ^ state_in[6] ^ state_in[2] ^ state_in[1] ^ state_in[0] ^ b[2];
+  assign state_out[1] = state_in[7] ^ state_in[6] ^ state_in[5] ^ state_in[1] ^ state_in[0] ^ b[1];
+  assign state_out[0] = state_in[7] ^ state_in[6] ^ state_in[5] ^ state_in[4] ^ state_in[0] ^ b[0];
 endmodule
 
-module AES_SBox(output [7:0] sbox [0:255]);
-    wire [7:0] g1_inv [0:255];
-    wire [7:0] transformed [0:255];
-
-    genvar i;
-    generate
-        for (i = 0; i < 256; i = i + 1) begin: sbox_gen
-            wire [7:0] input_val;
-            assign input_val = i; 
-            AES_inverse aes_inv_inst (.g1(input_val), .g1_inv(g1_inv[i]));
-            affineTransformation affine_inst (.state_in(g1_inv[i]), .state_out(transformed[i]));
-            assign sbox[i] = transformed[i];
-        end
-    endgenerate
+module AES_SBox (input  [7:0] a, output [7:0] s);
+  wire [7:0] inv;   // multiplicative inverse in GF(2^8)
+  AES_inverse inv_inst(.g1(a), .g1_inv(inv));
+  affineTransformation aff_inst(.state_in(inv), .state_out(s));
 endmodule
+
