@@ -1,2 +1,2 @@
-Part1: In this project, we will implement AES Sbox and its inversion in sage.
-Part2: Afterwards, we also implement AES Sbox design in Verilog. 
+Part1: In this project, I have implemented AES Sbox and its inversion in sage.
+Part2: Afterwards, I have also implemented AES Sbox design in Verilog. 
